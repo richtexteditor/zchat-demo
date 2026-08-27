@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ZChat widget demo</title>
+<style>
+  :root { color-scheme: light dark; --bg:#f6f8fb; --panel:#fff; --ink:#111827; --muted:#5b6b7c; --line:#dde4ee; --accent:#2563eb; --code:#1e293b; --code-ink:#e2e8f0; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0d1520; --panel:#151f2b; --ink:#e8eff5; --muted:#9fb0c0; --line:#26374a; --accent:#60a5fa; --code:#0b1220; --code-ink:#dbe6f3; } }
+  body { margin:0; padding:40px 20px; background:var(--bg); color:var(--ink);
+         font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; line-height:1.6; }
+  main { max-width:760px; margin:0 auto; }
+  h1 { margin:0 0 6px; font-size:1.7rem; }
+  .sub { color:var(--muted); margin:0 0 28px; }
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:20px; margin-bottom:20px; }
+  label { display:block; font-weight:600; font-size:.85rem; margin-bottom:6px; }
+  input[type=url] { width:100%; box-sizing:border-box; padding:9px 11px; font:inherit;
+                    border:1px solid var(--line); border-radius:6px; background:var(--bg); color:var(--ink); }
+  button { margin-top:12px; padding:9px 16px; font:inherit; font-weight:600; cursor:pointer;
+           border:0; border-radius:6px; background:var(--accent); color:#fff; }
+  pre { background:var(--code); color:var(--code-ink); padding:14px; border-radius:8px; overflow-x:auto; font-size:.85rem; }
+  .status { margin-top:12px; font-size:.9rem; color:var(--muted); }
+  .hint { font-size:.85rem; color:var(--muted); }
+  code { background:rgba(127,127,127,.16); padding:1px 5px; border-radius:4px; font-size:.9em; }
+</style>
+</head>
+<body>
+<main>
+  <h1>ZChat widget demo</h1>
+  <p class="sub">Load the ZChat visitor widget from your own server to check it before you touch your real site.</p>
+
+  <div class="panel">
+    <label for="server">Your ZChat server URL</label>
+    <input type="url" id="server" placeholder="https://chat.example.com" autocomplete="url">
+    <p class="hint">Running the local demo? Use <code>http://127.0.0.1:5050</code>.</p>
+    <button type="button" id="load">Load widget</button>
+    <p class="status" id="status"></p>
+  </div>
+
+  <div class="panel">
+    <h2 style="margin-top:0;font-size:1.05rem;">Embed code</h2>
+    <p class="hint">Paste this into your own site, just before <code>&lt;/body&gt;</code>.</p>
+    <pre id="snippet"></pre>
+  </div>
+
+  <p class="hint">
+    The widget must be served from the ZChat install itself, so this page needs a
+    reachable server. If nothing appears, check that
+    <code>/widget/zchat.iife.js</code> returns 200 and that your server allows this
+    page's origin.
+  </p>
+</main>
+
+<script>
+(function () {
+  var serverInput = document.getElementById('server');
+  var statusEl = document.getElementById('status');
+  var snippetEl = document.getElementById('snippet');
+  var loaded = false;
+
+  function normalise(value) {
+    var url = (value || '').trim().replace(/\/+$/, '');
+    if (!url) return '';
+    if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+    return url;
+  }
+
+  function renderSnippet(origin) {
+    var target = origin || 'https://YOUR-SERVER';
+    snippetEl.textContent =
+      '<script src="' + target + '/widget/zchat.iife.js"\n' +
+      '        data-server-url="' + target + '"\n' +
+      '        data-site-id="default"><\/script>';
+  }
+
+  function load() {
+    if (loaded) {
+      statusEl.textContent = 'Widget already loaded — reload the page to point at a different server.';
+      return;
+    }
+    var origin = normalise(serverInput.value);
+    if (!origin) { statusEl.textContent = 'Enter your server URL first.'; serverInput.focus(); return; }
+
+    renderSnippet(origin);
+    statusEl.textContent = 'Loading widget from ' + origin + ' …';
+
+    var script = document.createElement('script');
+    script.src = origin + '/widget/zchat.iife.js';
+    script.onload = function () {
+      loaded = true;
+      if (typeof ZChat === 'undefined' || typeof ZChat.init !== 'function') {
+        statusEl.textContent = 'Script loaded but ZChat.init is unavailable — is that really a ZChat server?';
+        return;
+      }
+      ZChat.init({
+        serverUrl: origin,
+        siteId: 'default',
+        greeting: 'Hello! How can we help you today?',
+        position: 'bottom-right',
+        primaryColor: '#2563eb'
+      });
+      statusEl.textContent = 'Widget loaded. Look for the chat bubble in the bottom-right corner.';
+    };
+    script.onerror = function () {
+      statusEl.textContent = 'Could not load ' + script.src + ' — check the URL, that the server is running, and its CORS settings.';
+    };
+    document.body.appendChild(script);
+  }
+
+  document.getElementById('load').addEventListener('click', load);
+  serverInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') load(); });
+  serverInput.addEventListener('input', function () { if (!loaded) renderSnippet(normalise(serverInput.value)); });
+  renderSnippet('');
+}());
+</script>
+</body>
+</html>

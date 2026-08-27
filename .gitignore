@@ -1,0 +1,10 @@
+# Nothing from a ZChat install belongs in this repo.
+*.lic
+appsettings.json
+appsettings.*.json
+Web.config
+*.zip
+*.dll
+*.exe
+*.pdb
+node_modules/
