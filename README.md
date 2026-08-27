@@ -66,6 +66,9 @@ Or initialise it yourself:
 </script>
 ```
 
+Every embed option, plus how to pre-fill the form for a signed-in customer in a
+portal, is in [docs/embedding.md](docs/embedding.md).
+
 [`demo/index.html`](demo/index.html) is a self-contained page that does this
 against a server URL you type in — useful for checking the widget against your
 own install before you touch your real site.
@@ -74,6 +77,7 @@ own install before you touch your real site.
 
 - [Install the ASP.NET Core edition](docs/install-core.md)
 - [Verify a Core install](docs/verify-core.md) — proves the server, database, licence, dashboard and widget actually work
+- [Embedding the widget](docs/embedding.md) — every option, portals, and opting a page out of monitoring
 - [Verify a Web Forms install](docs/verify-webforms.md) — including the two checks that catch a broken deployment
 
 ## Licence
